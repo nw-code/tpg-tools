@@ -12,8 +12,15 @@ func TestCount(t *testing.T) {
 	t.Parallel()
 	src := strings.NewReader("line1\nline2\nline3")
 	//src := bytes.NewBuffer([]byte("line1\nline2\nline3"))
-	counter := count.NewCounter()
-	counter.Input = src
+	counter, err := count.NewCounter(
+		count.WithInput(src),
+	)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	//counter.Input = src
 	got := counter.Lines()
 	want := 3
 
