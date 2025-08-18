@@ -73,6 +73,25 @@ func TestCount(t *testing.T) {
 			t.Errorf("got %d, want %d", got, want)
 		}
 	})
+
+	t.Run("from multiple files", func(t *testing.T) {
+		t.Parallel()
+		args := []string{"testdata/three_lines.txt", "testdata/four_lines.txt"}
+		counter, err := count.NewCounter(
+			count.WithInputFromArgs(args),
+		)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		got := counter.Lines()
+		want := 7
+
+		if got != want {
+			t.Errorf("got %d, want %d", got, want)
+		}
+	})
 }
 
 func Test(t *testing.T) {
