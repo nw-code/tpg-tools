@@ -1,11 +1,19 @@
 package count_test
 
 import (
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/nw-code/tpg-tools/arguments/count"
+	"github.com/rogpeppe/go-internal/testscript"
 )
+
+func TestMain(m *testing.M) {
+	os.Exit(testscript.RunMain(m, map[string]func() int{
+		"count": count.Main,
+	}))
+}
 
 func TestCount(t *testing.T) {
 	t.Run("from stdin", func(t *testing.T) {
@@ -64,5 +72,12 @@ func TestCount(t *testing.T) {
 		if got != want {
 			t.Errorf("got %d, want %d", got, want)
 		}
+	})
+}
+
+func Test(t *testing.T) {
+	t.Parallel()
+	testscript.Run(t, testscript.Params{
+		Dir: "testdata/script",
 	})
 }
