@@ -17,6 +17,21 @@ type counter struct {
 
 type option func(*counter) error
 
+func (c *counter) Bytes() int {
+	bytes := 0
+	scanner := bufio.NewScanner(c.input)
+	scanner.Split(bufio.ScanBytes)
+	for scanner.Scan() {
+		bytes++
+	}
+
+	for _, f := range c.files {
+		f.(io.Closer).Close()
+	}
+
+	return bytes
+}
+
 func (c *counter) Lines() int {
 	lines := 0
 	scanner := bufio.NewScanner(c.input)
@@ -116,13 +131,14 @@ func MainLines() int {
 
 func Main() int {
 	flag.Usage = func() {
-		fmt.Printf("Usage: %s [-lines] [files...]\n", os.Args[0])
-		fmt.Println("Counts words (or lines from stdin (or files).")
+		fmt.Printf("Usage: %s [-lines] [-bytes] [files...]\n", os.Args[0])
+		fmt.Println("Counts words (or lines or bytes from stdin (or files).")
 		fmt.Println("Flags:")
 		flag.PrintDefaults()
 	}
 
 	lineMode := flag.Bool("lines", false, "Count lines, not words")
+	byteMode := flag.Bool("bytes", false, "Count bytes, not words")
 	flag.Parse()
 	c, err := NewCounter(
 		WithInputFromArgs(flag.Args()),
@@ -131,10 +147,18 @@ func Main() int {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	if *lineMode {
+
+	switch {
+	case *lineMode && *byteMode:
+		fmt.Fprint(os.Stderr, "Please specify either '-lines' or '-bytes', but not both")
+		os.Exit(1)
+	case *lineMode:
 		fmt.Println(c.Lines())
-	} else {
+	case *byteMode:
+		fmt.Println(c.Bytes())
+	default:
 		fmt.Println(c.Words())
 	}
+
 	return 0
 }

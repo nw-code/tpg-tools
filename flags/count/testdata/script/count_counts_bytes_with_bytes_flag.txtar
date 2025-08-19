@@ -1,0 +1,7 @@
+exec count -bytes input.txt
+stdout '^32\n$'
+
+-- input.txt --
+this input
+contains
+three lines
