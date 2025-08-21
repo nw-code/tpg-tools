@@ -2,28 +2,25 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 )
 
-func countGoFiles(dirPath string) int {
+func main() {
 	var count int
-	files, _ := os.ReadDir(dirPath)
-
-	for _, f := range files {
-		if f.IsDir() {
-			subDir := path.Join(dirPath, f.Name())
-			count += countGoFiles(subDir)
-		} else if path.Ext(f.Name()) == ".go" {
+	fsys := os.DirFS("/tmp/tpg-tools")
+	err := fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
+		if !d.IsDir() && path.Ext(p) == ".go" {
 			count++
 		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
-	return count
-}
-
-func main() {
-	dirPath := "/tmp/tpg-tools"
-	tally := countGoFiles(dirPath)
-	fmt.Println(tally)
+	fmt.Println(count)
 }
