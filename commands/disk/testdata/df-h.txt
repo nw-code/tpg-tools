@@ -1,0 +1,11 @@
+Filesystem                   Size  Used Avail Use% Mounted on
+tmpfs                        1.6G  5.4M  1.6G   1% /run
+/dev/mapper/ubuntu--vg-root  218G  192G   16G  93% /
+tmpfs                        7.8G  2.3G  5.5G  30% /dev/shm
+tmpfs                        5.0M  8.0K  5.0M   1% /run/lock
+efivarfs                     128K   88K   36K  72% /sys/firmware/efi/efivars
+/dev/nvme0n1p2               471M  201M  246M  45% /boot
+/dev/nvme0n1p1               511M  6.2M  505M   2% /boot/efi
+tmpfs                        1.6G  284K  1.6G   1% /run/user/1000
+//192.168.0.3/data           5.0T  5.0T   15G 100% /mnt/smb
+//192.168.0.3/music          5.0T  5.0T   15G 100% /mnt/music
