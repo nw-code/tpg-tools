@@ -13,6 +13,7 @@ func TestDiskFree(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		defer in.Close()
 		fs, err := disk.NewFileSystem("/dev/mapper/ubuntu--vg-root", in)
 		if err != nil {
 			t.Fatal(err)

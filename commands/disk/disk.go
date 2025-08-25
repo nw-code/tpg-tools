@@ -1,7 +1,7 @@
 package disk
 
 import (
-	"bufio"
+	//	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -13,56 +13,34 @@ import (
 )
 
 type filesystem struct {
-	free int
+	use  int
 	name string
 }
 
 func NewFileSystem(name string, in io.Reader) (*filesystem, error) {
-	var match string
-	f := new(filesystem)
-	reg, err := regexp.Compile(fmt.Sprintf("^%s.*", name))
-	if err != nil {
-		return nil, fmt.Errorf("could not compile regex %v", err)
-	}
-	scanner := bufio.NewScanner(in)
+	reg := regexp.MustCompile(fmt.Sprintf("(?m)^%s.+\\s(\\d+)%%", name))
 
-	for scanner.Scan() {
-		match = reg.FindString(scanner.Text())
-		if match != "" {
-			break
-		}
+	b, _ := io.ReadAll(in)
+	txt := string(b)
+
+	matches := reg.FindStringSubmatch(txt)
+	if len(matches) == 0 {
+		return nil, fmt.Errorf("unable to find filesystem %s", name)
 	}
 
-	if match == "" {
-		return nil, fmt.Errorf("could not file filesystem %q", name)
-	}
-
-	err = f.parse(match)
+	use, err := strconv.Atoi(matches[1])
 	if err != nil {
 		return nil, err
 	}
+	f := new(filesystem)
+	f.use = use
+	f.name = name
+
 	return f, nil
 }
 
-func (f *filesystem) parse(attr string) error {
-	reg := regexp.MustCompile(`^([^\s]+).+\s(\d+)%`)
-	matches := reg.FindStringSubmatch(attr)
-	if len(matches) == 0 {
-		return fmt.Errorf("unable to parse attributes from %s", attr)
-	}
-
-	f.name = matches[1]
-	free, err := strconv.Atoi(matches[2])
-	if err != nil {
-		return err
-	}
-	f.free = free
-
-	return nil
-}
-
 func (f *filesystem) Usage() int {
-	return f.free
+	return f.use
 }
 
 func Main() {
