@@ -1,63 +1,38 @@
 package disk
 
 import (
-	//	"bufio"
 	"bytes"
-	"flag"
 	"fmt"
-	"io"
-	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
 )
 
-type filesystem struct {
-	use  int
-	name string
-}
-
-func NewFileSystem(name string, in io.Reader) (*filesystem, error) {
-	reg := regexp.MustCompile(fmt.Sprintf("(?m)^%s.+\\s(\\d+)%%", name))
-
-	b, _ := io.ReadAll(in)
-	txt := string(b)
-
-	matches := reg.FindStringSubmatch(txt)
+func ParseDf(data, fs string) (int, error) {
+	reg := regexp.MustCompile(fmt.Sprintf("(?m)^%s.+\\s(\\d+)%%", fs))
+	matches := reg.FindStringSubmatch(data)
 	if len(matches) == 0 {
-		return nil, fmt.Errorf("unable to find filesystem %s", name)
+		return 0, fmt.Errorf("unable to find filesystem %s", fs)
 	}
 
 	use, err := strconv.Atoi(matches[1])
 	if err != nil {
-		return nil, err
-	}
-	f := new(filesystem)
-	f.use = use
-	f.name = name
-
-	return f, nil
-}
-
-func (f *filesystem) Usage() int {
-	return f.use
-}
-
-func Main() {
-	fs := flag.String("filesystem", "", "filesystem to query")
-	flag.Parse()
-
-	if *fs == "" {
-		fmt.Fprint(os.Stderr, "filesystem flag is mandatory")
-		flag.Usage()
-		os.Exit(1)
+		return 0, err
 	}
 
-	var buf bytes.Buffer
+	return use, nil
+}
+
+func GetDfOutput() (string, error) {
+	var buf = new(bytes.Buffer)
+
 	df := exec.Command("df", "-h")
-	df.Stdout = &buf
-	df.Run()
-	f, _ := NewFileSystem(*fs, &buf)
+	df.Stdout = buf
+	err := df.Run()
 
-	fmt.Println(f.Usage())
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
