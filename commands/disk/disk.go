@@ -1,8 +1,9 @@
 package disk
 
 import (
-	"bytes"
+	"flag"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -24,15 +25,33 @@ func ParseDf(data, fs string) (int, error) {
 }
 
 func GetDfOutput() (string, error) {
-	var buf = new(bytes.Buffer)
-
-	df := exec.Command("df", "-h")
-	df.Stdout = buf
-	err := df.Run()
+	data, err := exec.Command("df", "-h").CombinedOutput()
 
 	if err != nil {
 		return "", err
 	}
 
-	return buf.String(), nil
+	return string(data), nil
+}
+
+func Main() {
+	fs := flag.String("filesystem", "", "Filesystem usage")
+	flag.Parse()
+
+	if *fs == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	data, err := GetDfOutput()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	use, err := ParseDf(data, *fs)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	fmt.Printf("Filesystem %q is %d%% full\n", *fs, use)
 }
