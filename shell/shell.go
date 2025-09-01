@@ -11,6 +11,7 @@ import (
 )
 
 type Session struct {
+	DryRun         bool
 	Stdin          io.Reader
 	Stdout, Stderr io.Writer
 }
@@ -28,15 +29,19 @@ func (s *Session) Run() {
 	fmt.Fprint(s.Stdout, ":> ")
 	for scn.Scan() {
 		fmt.Fprint(s.Stdout, ":> ")
-		cmd, err := CmdFromString(scn.Text())
-		if err != nil {
-			continue
+		if s.DryRun {
+			fmt.Fprintln(s.Stdout, scn.Text())
+		} else {
+			cmd, err := CmdFromString(scn.Text())
+			if err != nil {
+				continue
+			}
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				fmt.Fprintln(s.Stdout, out, err)
+			}
+			fmt.Fprintf(s.Stdout, "%s", out)
 		}
-		out, err := cmd.CombinedOutput()
-		if err != nil {
-			fmt.Fprintln(s.Stdout, out, err)
-		}
-		fmt.Fprintf(s.Stdout, "%s", out)
 		fmt.Fprint(s.Stdout, ":> ")
 	}
 	fmt.Fprintln(s.Stdout, "Exiting...")

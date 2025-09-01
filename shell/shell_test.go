@@ -47,8 +47,9 @@ func TestSession_Run(t *testing.T) {
 	out := &bytes.Buffer{}
 	errs := &bytes.Buffer{}
 
-	want := ":> :> foo\n:> Exiting...\n"
+	want := ":> :> echo foo\n:> Exiting...\n"
 	session := shell.NewSession(in, out, errs)
+	session.DryRun = true
 	session.Run()
 
 	if !cmp.Equal(out.String(), want) {
