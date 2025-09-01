@@ -2,6 +2,7 @@ package shell_test
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"testing"
 
@@ -32,9 +33,11 @@ func TestCmdFromString_ErrorsOnEmptyInput(t *testing.T) {
 
 func TestNewSession(t *testing.T) {
 	want := shell.Session{
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
+		DryRun:     false,
+		Stdin:      os.Stdin,
+		Stdout:     os.Stdout,
+		Stderr:     os.Stderr,
+		Transcript: io.Discard,
 	}
 	got := shell.NewSession(os.Stdin, os.Stdout, os.Stderr)
 	if want != *got {
@@ -47,7 +50,7 @@ func TestSession_Run(t *testing.T) {
 	out := &bytes.Buffer{}
 	errs := &bytes.Buffer{}
 
-	want := ":> :> echo foo\n:> Exiting...\n"
+	want := ":> echo foo\n:> Exiting...\n"
 	session := shell.NewSession(in, out, errs)
 	session.DryRun = true
 	session.Run()
