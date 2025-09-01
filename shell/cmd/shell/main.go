@@ -9,6 +9,10 @@ import (
 )
 
 func main() {
+	os.Exit(shell.Main())
+}
+
+func main() {
 	scn := bufio.NewScanner(os.Stdin)
 	fmt.Print(":> ")
 	for scn.Scan() {

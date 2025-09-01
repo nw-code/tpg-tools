@@ -1,6 +1,8 @@
 package shell_test
 
 import (
+	"bytes"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -25,5 +27,31 @@ func TestCmdFromString_ErrorsOnEmptyInput(t *testing.T) {
 	_, err := shell.CmdFromString(input)
 	if err == nil {
 		t.Fatal("want error on empty input, got nil")
+	}
+}
+
+func TestNewSession(t *testing.T) {
+	want := shell.Session{
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+	}
+	got := shell.NewSession(os.Stdin, os.Stdout, os.Stderr)
+	if want != *got {
+		t.Fatalf("got %#v, want %#v", got, want)
+	}
+}
+
+func TestSession_Run(t *testing.T) {
+	in := bytes.NewBufferString("echo foo\n")
+	out := &bytes.Buffer{}
+	errs := &bytes.Buffer{}
+
+	want := ":> :> foo\n:> Exiting...\n"
+	session := shell.NewSession(in, out, errs)
+	session.Run()
+
+	if !cmp.Equal(out.String(), want) {
+		t.Errorf(cmp.Diff(out.String(), want))
 	}
 }
