@@ -12,9 +12,6 @@ func TestGetReturnsNotOKIfKeyDoesNotExist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() {
-		os.Remove("testdata/non-existent")
-	})
 	_, ok := s.Get("foo")
 	if ok {
 		t.Fatal("unexpected ok")
@@ -26,9 +23,6 @@ func TestGetReturnsOKWithValueIfKeyExists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() {
-		os.Remove("testdata/non-existent")
-	})
 	s.Set("key", "value")
 	got, ok := s.Get("key")
 	if !ok {
@@ -44,9 +38,6 @@ func TestSetOverwritesExistingKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() {
-		os.Remove("testdata/non-existent")
-	})
 	s.Set("key", "value")
 	s.Set("key", "new-value")
 	got, ok := s.Get("key")
@@ -83,5 +74,43 @@ func TestSetToFilePersisted(t *testing.T) {
 	}
 	if got, _ := s2.Get("C"); got != "3" {
 		t.Errorf("Got C=%s, want C=3", got)
+	}
+}
+
+func TestOpenStore_ErrorsWhenPathUnreadable(t *testing.T) {
+	path := t.TempDir() + "/unreadable.store"
+	if _, err := os.Create(path); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Chmod(path, 0o000); err != nil {
+		t.Fatal(err)
+	}
+	_, err := kv.OpenStore(path)
+	if err == nil {
+		t.Fatal("no error")
+	}
+}
+
+func TestOpenStore_ReturnsErrorOnInvalidData(t *testing.T) {
+	path := t.TempDir() + "/invalid.store"
+	if _, err := os.Create(path); err != nil {
+		t.Fatal(err)
+	}
+	_, err := kv.OpenStore(path)
+	if err == nil {
+		t.Fatal("no error")
+	}
+}
+
+func TestOpenStore_ErrorsWhenPathUnwritable(t *testing.T) {
+	path := "non-existent/unwritable.store"
+	s, err := kv.OpenStore(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = s.Save()
+	if err == nil {
+		t.Fatal("no error")
 	}
 }

@@ -1,8 +1,9 @@
 package kv
 
 import (
-	"encoding/json"
-	"io"
+	"encoding/gob"
+	"errors"
+	"io/fs"
 	"os"
 )
 
@@ -12,34 +13,21 @@ type store struct {
 }
 
 func OpenStore(path string) (*store, error) {
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		return &store{}, err
-	}
-	defer f.Close()
-	fileinfo, err := f.Stat()
-	if err != nil {
-		return &store{}, err
-	}
-	if fileinfo.Size() == 0 {
-		f.Write([]byte("{}"))
-		_, err = f.Seek(0, io.SeekStart)
-		if err != nil {
-			return &store{}, err
-		}
-	}
-	data, err := io.ReadAll(f)
-	if err != nil {
-		return &store{}, err
-	}
 	s := &store{
 		data: map[string]string{},
 		path: path,
 	}
-	err = json.Unmarshal(data, &s.data)
+	f, err := os.Open(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return s, nil
+	}
 	if err != nil {
-		s.data = map[string]string{}
-		return s, err
+		return nil, err
+	}
+	defer f.Close()
+	err = gob.NewDecoder(f).Decode(&s.data)
+	if err != nil {
+		return nil, err
 	}
 	return s, nil
 }
@@ -59,13 +47,5 @@ func (s *store) Save() error {
 		return err
 	}
 	defer f.Close()
-	data, err := json.Marshal(s.data)
-	if err != nil {
-		return err
-	}
-	_, err = f.Write(data)
-	if err != nil {
-		return err
-	}
-	return nil
+	return gob.NewEncoder(f).Encode(s.data)
 }
