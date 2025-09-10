@@ -3,11 +3,10 @@ package weather
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"time"
 )
-
-type WeatherItem struct {
-	Main string
-}
 
 type OWMResponse struct {
 	Weather []struct {
@@ -17,6 +16,48 @@ type OWMResponse struct {
 
 type Conditions struct {
 	Summary string
+}
+
+type Client struct {
+	BaseURL    string
+	APIKey     string
+	HTTPClient *http.Client
+}
+
+func NewClient(apiKey string) *Client {
+	return &Client{
+		BaseURL: "https://api.openweathermap.org",
+		APIKey:  apiKey,
+		HTTPClient: &http.Client{
+			Timeout: 10 * time.Second,
+		},
+	}
+}
+
+func (c Client) FormatURL(latitude, longitude float64) string {
+	return fmt.Sprintf("%s/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s", c.BaseURL, latitude, longitude, c.APIKey)
+}
+
+func (c Client) GetWeather(latitude, longitude float64) (Conditions, error) {
+	URL := c.FormatURL(latitude, longitude)
+
+	resp, err := c.HTTPClient.Get(URL)
+	if err != nil {
+		return Conditions{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return Conditions{}, fmt.Errorf("unexpected response status: %q", resp.Status)
+	}
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Conditions{}, fmt.Errorf("unexpected issue reading response body: %v", err)
+	}
+	conditions, err := ParseResponse(data)
+	if err != nil {
+		return Conditions{}, err
+	}
+	return conditions, nil
 }
 
 func ParseResponse(data []byte) (Conditions, error) {

@@ -2,17 +2,11 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/nw-code/tpg-tools/weather"
 )
-
-type CurrentWeather struct {
-	Main map[string]float32 `json:"main"`
-}
 
 const Usage = `Usage: weather LATITUDE LONGITUDE
 
@@ -38,29 +32,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, "missing environment variable API_KEY")
 		os.Exit(1)
 	}
-	baseURL := "https://api.openweathermap.org"
-	URL := weather.FormatURL(baseURL, latitude, longitude, apiKey)
-
-
-	r, err := http.Get(URL)
+	c := weather.NewClient(apiKey)
+	conditions, err := c.GetWeather(latitude, longitude)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	defer r.Body.Close()
-	if r.StatusCode != http.StatusOK {
-		fmt.Fprintln(os.Stderr, "unexpected response status", r.Status)
-		os.Exit(1)
-	}
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "unexpected issue reading response body")
-		os.Exit(1)
-	}
-	conditions, err := weather.ParseResponse(data)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+
 	fmt.Println(conditions)
 }

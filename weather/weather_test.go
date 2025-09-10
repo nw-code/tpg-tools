@@ -28,6 +28,30 @@ func TestParseResponse_CorrectlyParsesJSONData(t *testing.T) {
 	}
 }
 
+func TestGetWeather_ReturnsExpectedConditions(t *testing.T) {
+	ts := httptest.NewTLSServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "testdata/weather.json")
+		}))
+	defer ts.Close()
+	apiKey := "662e2f7b337efe11afc601a8ad6d36ff"
+	c := weather.NewClient(apiKey)
+	c.BaseURL = ts.URL
+	c.HTTPClient = ts.Client()
+	latitude := -37.654
+	longitude := 145.5172
+	got, err := c.GetWeather(latitude, longitude)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := weather.Conditions{
+		Summary: "Clouds",
+	}
+	if !cmp.Equal(got, want) {
+		t.Error(cmp.Diff(got, want))
+	}
+}
+
 func TestParseResponse_ErrorsOnEmptyData(t *testing.T) {
 	_, err := weather.ParseResponse([]byte{})
 	if err == nil {
@@ -47,12 +71,12 @@ func TestParseResponse_ReturnsEmptyConditionsForMissingWeather(t *testing.T) {
 }
 
 func TestFormatURL_ReturnsCorrectlyFormattedURL(t *testing.T) {
-	baseURL := "https://api.openweathermap.org"
+	apiKey := "662e2f7b337efe11afc601a8ad6d36ff"
+	c := weather.NewClient(apiKey)
 	latitude := -37.654
 	longitude := 145.5172
-	apiKey := "662e2f7b337efe11afc601a8ad6d36ff"
-	got := weather.FormatURL(baseURL, latitude, longitude, apiKey)
-	want := fmt.Sprintf("%s/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s", baseURL, latitude, longitude, apiKey)
+	got := c.FormatURL(latitude, longitude)
+	want := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s", latitude, longitude, apiKey)
 	if !cmp.Equal(got, want) {
 		t.Error(cmp.Diff(got, want))
 	}
