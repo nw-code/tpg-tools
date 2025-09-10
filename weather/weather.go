@@ -18,12 +18,20 @@ type OWMResponse struct {
 	Weather []struct {
 		Main string
 	}
-	Main map[string]float64
+	Main struct {
+		Temp float64
+	}
+}
+
+type Kelvin float64
+
+func (k Kelvin) Celcius() float64 {
+	return float64(k) - 273.15
 }
 
 type Conditions struct {
-	Summary string
-	Temp    float64
+	Summary     string
+	Temperature Kelvin
 }
 
 type Client struct {
@@ -43,7 +51,7 @@ func NewClient(apiKey string) *Client {
 }
 
 func (c Client) FormatURL(latitude, longitude float64) string {
-	return fmt.Sprintf("%s/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s", c.BaseURL, latitude, longitude, c.APIKey)
+	return fmt.Sprintf("%s/data/2.5/weather?lat=%f&lon=%f&appid=%s", c.BaseURL, latitude, longitude, c.APIKey)
 }
 
 func (c Client) GetWeather(latitude, longitude float64) (Conditions, error) {
@@ -78,14 +86,14 @@ func ParseResponse(data []byte) (Conditions, error) {
 		return Conditions{}, fmt.Errorf("invalid API response %s: want at least one Weather element", data)
 	}
 	conditions := Conditions{
-		Summary: resp.Weather[0].Main,
-		Temp:    resp.Main["temp"],
+		Summary:     resp.Weather[0].Main,
+		Temperature: Kelvin(resp.Main.Temp),
 	}
 	return conditions, nil
 }
 
 func FormatURL(baseURL string, latitude, longitude float64, apiKey string) string {
-	return fmt.Sprintf("%s/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s", baseURL, latitude, longitude, apiKey)
+	return fmt.Sprintf("%s/data/2.5/weather?lat=%f&lon=%f&appid=%s", baseURL, latitude, longitude, apiKey)
 }
 
 func Get(apiKey string, latitude, longitude float64) (Conditions, error) {
@@ -119,6 +127,6 @@ func Main() int {
 		return 1
 	}
 
-	fmt.Println(conditions)
+	fmt.Printf("%s %.1fºC\n", conditions.Summary, conditions.Temperature.Celcius())
 	return 0
 }

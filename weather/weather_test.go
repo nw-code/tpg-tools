@@ -21,8 +21,8 @@ func TestParseResponse_CorrectlyParsesJSONData(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	want := weather.Conditions{
-		Summary: "Clouds",
-		Temp:    11.72,
+		Summary:     "Clouds",
+		Temperature: 281.24,
 	}
 	if !cmp.Equal(got, want) {
 		t.Error(cmp.Diff(got, want))
@@ -46,8 +46,8 @@ func TestGetWeather_ReturnsExpectedConditions(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := weather.Conditions{
-		Summary: "Clouds",
-		Temp:    11.72,
+		Summary:     "Clouds",
+		Temperature: 281.24,
 	}
 	if !cmp.Equal(got, want) {
 		t.Error(cmp.Diff(got, want))
@@ -78,7 +78,7 @@ func TestFormatURL_ReturnsCorrectlyFormattedURL(t *testing.T) {
 	latitude := -37.654
 	longitude := 145.5172
 	got := c.FormatURL(latitude, longitude)
-	want := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s", latitude, longitude, apiKey)
+	want := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&appid=%s", latitude, longitude, apiKey)
 	if !cmp.Equal(got, want) {
 		t.Error(cmp.Diff(got, want))
 	}
@@ -100,4 +100,14 @@ func TestHTTPS(t *testing.T) {
 	if !cmp.Equal(got, want) {
 		t.Error(cmp.Diff(got, want))
 	}
+}
+
+func TestCelciusCorrectlyConvertsKelvinToCelcius(t *testing.T) {
+	k := weather.Kelvin(274.15)
+	got := k.Celcius()
+	want := 1.0
+	if !cmp.Equal(got, want) {
+		t.Errorf(cmp.Diff(got, want))
+	}
+
 }
