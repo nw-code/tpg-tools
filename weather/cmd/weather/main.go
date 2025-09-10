@@ -32,8 +32,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "missing environment variable API_KEY")
 		os.Exit(1)
 	}
-	c := weather.NewClient(apiKey)
-	conditions, err := c.GetWeather(latitude, longitude)
+	conditions, err := weather.Get(apiKey, latitude, longitude)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

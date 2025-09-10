@@ -78,3 +78,8 @@ func ParseResponse(data []byte) (Conditions, error) {
 func FormatURL(baseURL string, latitude, longitude float64, apiKey string) string {
 	return fmt.Sprintf("%s/data/2.5/weather?lat=%f&lon=%f&units=metric&appid=%s", baseURL, latitude, longitude, apiKey)
 }
+
+func Get(apiKey string, latitude, longitude float64) (Conditions, error) {
+	c := NewClient(apiKey)
+	return c.GetWeather(latitude, longitude)
+}
