@@ -5,8 +5,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 )
+
+const Usage = `Usage: weather LATITUDE LONGITUDE
+
+Example: weather -37.654 145.5172`
 
 type OWMResponse struct {
 	Weather []struct {
@@ -82,4 +88,34 @@ func FormatURL(baseURL string, latitude, longitude float64, apiKey string) strin
 func Get(apiKey string, latitude, longitude float64) (Conditions, error) {
 	c := NewClient(apiKey)
 	return c.GetWeather(latitude, longitude)
+}
+
+func Main() int {
+	if len(os.Args) < 3 {
+		fmt.Fprintln(os.Stderr, Usage)
+		return 0
+	}
+	latitude, err := strconv.ParseFloat(os.Args[1], 64)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error converting arg %s to float64\n", os.Args[1])
+		return 1
+	}
+	longitude, err := strconv.ParseFloat(os.Args[2], 64)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error converting arg %s to float64\n", os.Args[2])
+		return 1
+	}
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		fmt.Fprintln(os.Stderr, "missing environment variable API_KEY")
+		return 1
+	}
+	conditions, err := Get(apiKey, latitude, longitude)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+
+	fmt.Println(conditions)
+	return 0
 }
