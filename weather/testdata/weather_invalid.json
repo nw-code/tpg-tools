@@ -1,0 +1,37 @@
+{
+  "coord": {
+    "lon": 145.5172,
+    "lat": -37.654
+  },
+  "weather": [],
+  "base": "stations",
+  "main": {
+    "temp": 11.72,
+    "feels_like": 10.8,
+    "temp_min": 11.72,
+    "temp_max": 11.72,
+    "pressure": 1015,
+    "humidity": 71,
+    "sea_level": 1015,
+    "grnd_level": 973
+  },
+  "visibility": 10000,
+  "wind": {
+    "speed": 1.23,
+    "deg": 205,
+    "gust": 3.58
+  },
+  "clouds": {
+    "all": 91
+  },
+  "dt": 1757408375,
+  "sys": {
+    "country": "AU",
+    "sunrise": 1757363285,
+    "sunset": 1757404984
+  },
+  "timezone": 36000,
+  "id": 2163701,
+  "name": "Healesville",
+  "cod": 200
+}
