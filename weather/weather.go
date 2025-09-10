@@ -18,10 +18,12 @@ type OWMResponse struct {
 	Weather []struct {
 		Main string
 	}
+	Main map[string]float64
 }
 
 type Conditions struct {
 	Summary string
+	Temp    float64
 }
 
 type Client struct {
@@ -77,6 +79,7 @@ func ParseResponse(data []byte) (Conditions, error) {
 	}
 	conditions := Conditions{
 		Summary: resp.Weather[0].Main,
+		Temp:    resp.Main["temp"],
 	}
 	return conditions, nil
 }

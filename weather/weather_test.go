@@ -22,6 +22,7 @@ func TestParseResponse_CorrectlyParsesJSONData(t *testing.T) {
 	}
 	want := weather.Conditions{
 		Summary: "Clouds",
+		Temp:    11.72,
 	}
 	if !cmp.Equal(got, want) {
 		t.Error(cmp.Diff(got, want))
@@ -46,6 +47,7 @@ func TestGetWeather_ReturnsExpectedConditions(t *testing.T) {
 	}
 	want := weather.Conditions{
 		Summary: "Clouds",
+		Temp:    11.72,
 	}
 	if !cmp.Equal(got, want) {
 		t.Error(cmp.Diff(got, want))
